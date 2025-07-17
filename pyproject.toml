@@ -1,0 +1,10 @@
+[project]
+name = "tg-translate-bot"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.13"
+dependencies = [
+    "aiogram>=3.21.0",
+    "google-genai>=1.26.0",
+    "pydantic-settings>=2.10.1",
+]
