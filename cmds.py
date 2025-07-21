@@ -1,8 +1,8 @@
 from typing import Literal, Optional
+
 from google import genai
 from google.genai import types
 
-import prompts
 from prompts import Prompt
 
 
@@ -55,9 +55,10 @@ class GeminiClient:
     # POSSIBLE TASKS:
 
     def __translate(self, lang: Optional[str], input_text: Optional[str]) -> str | None:
+        prompt = Prompt.translator.format(lang=lang, input_text=input_text)
         response = self.client.models.generate_content(
             model=self.model,
-            contents=str(prompts.Prompt.translator.format(lang=lang, input_text=input_text)),
+            contents=prompt,
             config=self.config
         )
-        return response.text
+        return print(response)
