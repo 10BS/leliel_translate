@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Optional
 from google import genai
 from google.genai import types
 
@@ -11,7 +11,7 @@ class GenAI:
         self,
         api_key: str | None,
         model: str | None,
-        system_instruction: str | None,
+        system_instruction: Optional[str] = None,
         temperature: float | None = 0,
         max_output_tokens: int | None = 4096,
         top_k: float | None = 10,
@@ -43,7 +43,7 @@ class GenAI:
         ],
         lang: str,
         input_text: str,
-    ) -> None:
+    ) -> Optional[str]:
         client = genai.Client(api_key=self.api_key)
         prompt = None
         match task:
