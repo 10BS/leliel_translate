@@ -1,3 +1,4 @@
+from io import IOBase
 from typing import Literal, Optional
 from google import genai
 from google.genai import types
@@ -5,18 +6,19 @@ from google.genai import types
 from prompts import Prompt
 
 
-class GenAI:
+class GeminiClient:
 
     def __init__(
-        self,
-        api_key: str | None,
-        model: str | None,
-        system_instruction: Optional[str] = None,
-        temperature: float | None = 0,
-        max_output_tokens: int | None = 4096,
-        top_k: float | None = 10,
-        top_p: float | None = 0.5,
+            self,
+            api_key: Optional[str],
+            model: Optional[str],
+            system_instruction: Optional[str] = None,
+            temperature: float | None = 0,
+            max_output_tokens: int | None = 4096,
+            top_k: float | None = 10,
+            top_p: float | None = 0.5,
     ) -> None:
+
         self.api_key = api_key
         self.model = model
         self.system_instruction = system_instruction
@@ -26,86 +28,66 @@ class GenAI:
         self.top_p = top_p
 
         self.config = types.GenerateContentConfig(
-        temperature=self.temperature,
-        max_output_tokens=self.max_output_tokens,
-        top_k=self.top_k,
-        top_p=self.top_p,
-    )
+            temperature=self.temperature,
+            max_output_tokens=self.max_output_tokens,
+            top_k=self.top_k,
+            top_p=self.top_p,
+        )
+
+        self.client = genai.Client(api_key=self.api_key)
 
     def do_task(
-        self,
-        task: Literal[
-            "translate",
-            "ocr",
-            "describe_picture",
-            "voice_to_text",
-            "voice_to_text_sum",
-        ],
-        lang: str,
-        input_text: str,
+            self,
+            task: Literal[
+                "translate",
+                "ocr",
+                "describe_picture",
+                "voice_to_text",
+                "voice_to_text_sum",
+            ],
+            lang: Optional[str] = None,
+            input_text: Optional[str] = None,
+            file: Optional[types.File | IOBase | bytes | str] = None,
     ) -> Optional[str]:
-        client = genai.Client(api_key=self.api_key)
-        prompt = None
-        match task:
-            case "translate":
-                prompt = str(Prompt.translator.format(lang=lang, input_text=input_text))
-            case "ocr":
-                prompt = str(Prompt.ocr)
-            case "describe_picture":
-                prompt = str(Prompt.describe_picture.format(lang=lang))
-            case "voice_to_text":
-                prompt = str(Prompt.voice_to_text)
-            case "voice_to_text_sum":
-                prompt = str(Prompt.voice_to_text_sum)
-        response = client.models.generate_content(
+        if task == "translate":
+            return self.__translate(lang=lang, input_text=input_text)
+        if task == "ocr":
+            return self.__ocr(file=file)
+        if task == "describe_picture":
+            return self.__describe_picture()
+        if task == "voice_to_text":
+            return self.__voice_to_text()
+        if task == "voice_to_text_sum":
+            return self.__voice_to_text_sum()
+
+    # POSSIBLE TASKS:
+
+    def __translate(self, lang: Optional[str], input_text: Optional[str]) -> str | None:
+        prompt = Prompt.translator.format(lang=lang, input_text=input_text)
+        response = self.client.models.generate_content(
             model=self.model,
-            contents=prompt,
-            config=self.config,
+            contents=types.Part.from_text(text=prompt),
+            config=self.config
         )
         return response.text
 
-# TODO deprecate
-def translate(self) -> str | None:
-    client = genai.Client(api_key=self.api_key)
-    response = client.models.generate_content(
-        model=self.model,
-        contents=Prompt.translator,
-        config=config
-    )
-    return response.text
+    def __ocr(self, file: types.File | IOBase | bytes | str) -> Optional[str]:
+        prompt = Prompt.ocr
+        response = self.client.models.generate_content(
+            model=self.model,
+            contents=[
+                prompt,
+                file,
+            ],
+            config=self.config
+        )
+        return response.text
 
-def ocr(self) -> str | None:
-    client = genai.Client(api_key=self.api_key)
-    response = client.models.generate_content(
-        model=self.model,
-        contents=Prompt.ocr,
-        config=config
-    )
-    return response.text
+    def __describe_picture(self) -> None:
+        pass
 
-def describe_picture(self) -> str | None:
-    client = genai.Client(api_key=self.api_key)
-    response = client.models.generate_content(
-        model=self.model,
-        contents=Prompt.describe_picture,
-        config=config
-    )
-    return response.text
+    def __voice_to_text(self) -> None:
+        pass
 
-def voice_to_text(self) -> str | None:
-    client = genai.Client(api_key=self.api_key)
-    response = client.models.generate_content(
-        model=self.model,
-        contents=Prompt.voice_to_text,
-        config=config
-    )
-    return response.text
-
-def voice_to_text_sum(self) -> str | None:
-    client = genai.Client(api_key=self.api_key)
-    response = client.models.generate_content(
-        model=self.model,
-        contents=Prompt.voice_to_text_sum,
-        config=config
-    )
-    return response.text
+    def __voice_to_text_sum(self) -> None:
+        pass
