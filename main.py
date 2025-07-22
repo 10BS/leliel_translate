@@ -17,7 +17,6 @@ gemini = GeminiClient(
 
 logging.basicConfig(level=logging.INFO)
 
-
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message) -> None:
     await message.answer("Go away.")
@@ -29,6 +28,7 @@ async def cmd_translate(message: types.Message) -> None:
     input_text: str = message.text
     output_text = gemini.do_task(task="translate", lang=lang, input_text=input_text)
     await message.reply(output_text)
+
 
 async def cmd_summarize() -> None:
     pass
