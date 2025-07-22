@@ -1,3 +1,4 @@
+from io import IOBase
 from typing import Literal, Optional
 
 from google import genai
@@ -45,12 +46,20 @@ class GeminiClient:
                 "voice_to_text",
                 "voice_to_text_sum",
             ],
-            lang: str,
-            input_text: str,
-            file: Optional[bytes] = None,
+            lang: Optional[str] = None,
+            input_text: Optional[str] = None,
+            file: Optional[types.File | IOBase | bytes | str] = None,
     ) -> Optional[str]:
         if task == "translate":
-            self.__translate(lang=lang, input_text=input_text)
+            return self.__translate(lang=lang, input_text=input_text)
+        if task == "ocr":
+            return self.__ocr(file=file)
+        if task == "describe_picture":
+            return self.__describe_picture()
+        if task == "voice_to_text":
+            return self.__voice_to_text()
+        if task == "voice_to_text_sum":
+            return self.__voice_to_text_sum()
 
     # POSSIBLE TASKS:
 
@@ -58,7 +67,28 @@ class GeminiClient:
         prompt = Prompt.translator.format(lang=lang, input_text=input_text)
         response = self.client.models.generate_content(
             model=self.model,
-            contents=prompt,
+            contents=types.Part.from_text(text=prompt),
             config=self.config
         )
-        return print(response)
+        return response.text
+
+    def __ocr(self, file: types.File | IOBase | bytes | str) -> Optional[str]:
+        prompt = Prompt.ocr
+        response = self.client.models.generate_content(
+            model=self.model,
+            contents=[
+                prompt,
+                file,
+            ],
+            config=self.config
+        )
+        return response.text
+
+    def __describe_picture(self) -> None:
+        pass
+
+    def __voice_to_text(self) -> None:
+        pass
+
+    def __voice_to_text_sum(self) -> None:
+        pass
